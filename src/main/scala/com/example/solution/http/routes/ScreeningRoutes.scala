@@ -23,6 +23,14 @@ final class ScreeningRoutes[F[_] : Defer : JsonDecoder : Monad](
 
   private[routes] val prefixPath = "/screenings"
 
+  val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+  implicit val dateEncoder = Encoder.encodeString.contramap[LocalDateTime](_.format(formatter))
+  implicit val dateDecoder = Decoder.decodeString.emap[LocalDateTime](str => {
+    Either.catchNonFatal(LocalDateTime.parse(str, formatter)).leftMap(_.getMessage)
+  })
+  implicit val AEncoder = deriveEncoder[ScreeningInterval]
+  implicit val ADecoder = deriveDecoder[ScreeningInterval]
+
 
   private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
 
