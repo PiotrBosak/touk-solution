@@ -1,3 +1,4 @@
+scalaVersion := "2.13.5"
 val Http4sVersion = "0.21.24"
 val CirceVersion = "0.13.0"
 val MunitVersion = "0.7.20"
@@ -10,12 +11,6 @@ val catsEffectVersion = "2.4.1"
 
 val cats = "org.typelevel" %% "cats-core" % catsVersion
 val catsEffect = "org.typelevel" %% "cats-effect" % catsEffectVersion
-lazy val root = (project in file("."))
-  .settings(
-    organization := "com.example",
-    name := "solution",
-    version := "0.0.1-SNAPSHOT",
-    scalaVersion := "2.13.6",
     libraryDependencies ++= Seq(
       "org.http4s"      %% "http4s-blaze-server" % Http4sVersion,
       "org.http4s"      %% "http4s-blaze-client" % Http4sVersion,
@@ -28,8 +23,5 @@ lazy val root = (project in file("."))
       "org.scalameta"   %% "svm-subs"            % "20.2.0",
       cats,
       catsEffect
-    ),
-    addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.13.0" cross CrossVersion.full),
-    addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1"),
+    )
     testFrameworks += new TestFramework("munit.Framework")
-  )
