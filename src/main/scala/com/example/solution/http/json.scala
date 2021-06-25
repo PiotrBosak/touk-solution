@@ -38,8 +38,8 @@ private[http] trait JsonCodecs {
   implicit val ScreeningDecoder: Decoder[Screening] = deriveDecoder[Screening]
   implicit val ScreeningEncoder: Encoder[Screening] = deriveEncoder[Screening]
 
-  implicit val ScreeningIntervalDecoder : Decoder[ScreeningInterval] = deriveDecoder[ScreeningInterval]
-  implicit val ScreeningIntervalEncoder : Encoder[ScreeningInterval] = deriveEncoder[ScreeningInterval]
+//  implicit val ScreeningIntervalDecoder : Decoder[ScreeningInterval] = deriveDecoder[ScreeningInterval]
+//  implicit val ScreeningIntervalEncoder : Encoder[ScreeningInterval] = deriveEncoder[ScreeningInterval]
 
   implicit val AvailableSeatEncoder : Encoder[AvailableSeat] = deriveEncoder[AvailableSeat]
   implicit val RoomDataEncoder : Encoder[RoomData] = deriveEncoder[RoomData]

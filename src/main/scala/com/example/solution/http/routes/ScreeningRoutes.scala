@@ -9,8 +9,13 @@ import org.http4s.dsl.Http4sDsl
 import com.example.solution.http.json._
 import cats.syntax.validated
 import cats.syntax.all._
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import org.http4s.circe.{JsonDecoder, toMessageSynax}
 import org.http4s.server.Router
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 final class ScreeningRoutes[F[_] : Defer : JsonDecoder : Monad](
                                                                  screenings: Screenings[F]
@@ -18,13 +23,21 @@ final class ScreeningRoutes[F[_] : Defer : JsonDecoder : Monad](
 
   private[routes] val prefixPath = "/screenings"
 
+  val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+  implicit val dateEncoder = Encoder.encodeString.contramap[LocalDateTime](_.format(formatter))
+  implicit val dateDecoder = Decoder.decodeString.emap[LocalDateTime](str => {
+    Either.catchNonFatal(LocalDateTime.parse(str, formatter)).leftMap(_.getMessage)
+  })
+  implicit val AEncoder = deriveEncoder[ScreeningInterval]
+  implicit val ADecoder = deriveDecoder[ScreeningInterval]
+
 
   private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
 
 
     case ar@GET -> Root =>
       ar.asJsonDecode[ScreeningInterval].flatMap(s => {
-        Ok(screenings.listScreenings(s.start, s.finish))
+        Ok(screenings.listScreenings(s))
       })
 
     case GET -> Root / "pick" / IntVar(screeningId) =>

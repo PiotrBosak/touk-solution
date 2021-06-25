@@ -16,8 +16,7 @@ create table screenings
     id       integer primary key,
     movie_id integer not null,
     room_id  integer not null,
-    date date,
-    time time,
+    screening_time timestamp ,
     constraint movie_fkey foreign key (movie_id)
         references movies (id),
     constraint room_fkey foreign key (room_id)
@@ -33,8 +32,6 @@ create table reservations
     client_surname varchar (50) not null,
     screening_id integer not null,
     total_cost float not null ,
-    constraint client_fkey foreign key (client_id)
-        references clients (id),
     constraint screening_fkey foreign key (screening_id)
         references screenings (id)
 );
