@@ -6,7 +6,7 @@ val LogbackVersion = "1.2.3"
 val MunitCatsEffectVersion = "0.13.0"
 
 val catsVersion = "2.5.0"
-
+val skunkVersion = "0.0.21"
 val catsEffectVersion = "2.4.1"
 
 val cats = "org.typelevel" %% "cats-core" % catsVersion
@@ -21,6 +21,8 @@ val catsEffect = "org.typelevel" %% "cats-effect" % catsEffectVersion
       "org.typelevel"   %% "munit-cats-effect-2" % MunitCatsEffectVersion % Test,
       "ch.qos.logback"  %  "logback-classic"     % LogbackVersion,
       "org.scalameta"   %% "svm-subs"            % "20.2.0",
+    "org.tpolecat" %% "skunk-core" % skunkVersion,
+    "org.tpolecat" %% "skunk-circe" % skunkVersion,
       cats,
       catsEffect
     )

@@ -5,7 +5,7 @@ import com.example.solution.domain.movie.{Movie, MovieId, MovieTitle}
 import com.example.solution.domain.room.{Room, RoomId}
 import com.example.solution.domain.screening.{Screening, ScreeningId}
 import com.example.solution.dto.reservation.{MadeReservation, PickedSeat, ReservationData, ScreeningInterval}
-import com.example.solution.dto.screening.{AvailableSeat, RoomData}
+import com.example.solution.dto.screening.{AvailableSeat, RoomData, ScreeningData}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import org.http4s.EntityEncoder
@@ -48,6 +48,8 @@ private[http] trait JsonCodecs {
   implicit val ReservationDataDecoder : Decoder[ReservationData] = deriveDecoder[ReservationData]
 
   implicit val MadeReservationEncoder : Encoder[MadeReservation] = deriveEncoder[MadeReservation]
+
+  implicit val ScreeningDateEncoder : Encoder[ScreeningData] = deriveEncoder[ScreeningData]
 
 }
 

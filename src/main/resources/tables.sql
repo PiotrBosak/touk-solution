@@ -16,7 +16,8 @@ create table screenings
     id       integer primary key,
     movie_id integer not null,
     room_id  integer not null,
-    screening_date date,
+    date date,
+    time time,
     constraint movie_fkey foreign key (movie_id)
         references movies (id),
     constraint room_fkey foreign key (room_id)
@@ -24,18 +25,12 @@ create table screenings
 
 );
 
-create table clients
-(
-    id      integer primary key,
-    name    varchar(50) not null,
-    surname varchar(50) not null
-);
-
 
 create table reservations
 (
     id           integer primary key,
-    client_id      integer not null,
+    client_name varchar (50) not null,
+    client_surname varchar (50) not null,
     screening_id integer not null,
     total_cost float not null ,
     constraint client_fkey foreign key (client_id)
