@@ -4,11 +4,12 @@ import cats.Applicative
 import com.example.solution.domain.movie.{Movie, MovieId, MovieTitle}
 import com.example.solution.domain.room.{Room, RoomId}
 import com.example.solution.domain.screening.{Screening, ScreeningId}
-import com.example.solution.dto.reservation.ScreeningInterval
+import com.example.solution.dto.reservation.{MadeReservation, PickedSeat, ReservationData, ScreeningInterval}
+import com.example.solution.dto.screening.{AvailableSeat, RoomData}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import org.http4s.EntityEncoder
-import org.http4s.circe.{jsonEncoderOf}
+import org.http4s.circe.jsonEncoderOf
 
 object json extends JsonCodecs {
   implicit def deriveEntityEncoder[F[_] : Applicative, A: Encoder]: EntityEncoder[F, A] = jsonEncoderOf[F, A]
@@ -40,6 +41,13 @@ private[http] trait JsonCodecs {
   implicit val ScreeningIntervalDecoder : Decoder[ScreeningInterval] = deriveDecoder[ScreeningInterval]
   implicit val ScreeningIntervalEncoder : Encoder[ScreeningInterval] = deriveEncoder[ScreeningInterval]
 
+  implicit val AvailableSeatEncoder : Encoder[AvailableSeat] = deriveEncoder[AvailableSeat]
+  implicit val RoomDataEncoder : Encoder[RoomData] = deriveEncoder[RoomData]
+
+  implicit val PickedSeatDecoder : Decoder[PickedSeat] = deriveDecoder[PickedSeat]
+  implicit val ReservationDataDecoder : Decoder[ReservationData] = deriveDecoder[ReservationData]
+
+  implicit val MadeReservationEncoder : Encoder[MadeReservation] = deriveEncoder[MadeReservation]
 
 }
 

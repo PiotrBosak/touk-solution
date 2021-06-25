@@ -11,23 +11,29 @@ import cats.syntax.validated
 import cats.syntax.all._
 import org.http4s.circe.{JsonDecoder, toMessageSynax}
 import org.http4s.server.Router
+
 final class ScreeningRoutes[F[_] : Defer : JsonDecoder : Monad](
-                                                   screenings: Screenings[F]
-                                                 ) extends Http4sDsl[F] {
+                                                                 screenings: Screenings[F]
+                                                               ) extends Http4sDsl[F] {
 
   private[routes] val prefixPath = "/screenings"
 
 
-  private val httpRoutes : HttpRoutes[F] = HttpRoutes.of[F]{
+  private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
 
-    case ar @ GET -> Root =>
+
+    case ar@GET -> Root =>
       ar.asJsonDecode[ScreeningInterval].flatMap(s => {
-       Ok(screenings.listScreenings(s.start,s.finish))
+        Ok(screenings.listScreenings(s.start, s.finish))
       })
+
+    case GET -> Root / "pick" / IntVar(screeningId) =>
+      Ok(screenings.pickScreening(screeningId))
+
   }
 
 
-  val routes : HttpRoutes[F] = Router(
+  val routes: HttpRoutes[F] = Router(
     prefixPath -> httpRoutes
   )
 
