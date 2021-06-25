@@ -1,10 +1,10 @@
 package com.example.solution
 
-import cats.effect.{ExitCode, IO, IOApp}
+import com.example.solution.http.json
 
-object Main extends IOApp {
+object Main extends App {
 
-  val a = List(1,2,3)
-  def run(args: List[String]) =
-   IO(println("Hello")).as(ExitCode.Success)
+
+
+
 }

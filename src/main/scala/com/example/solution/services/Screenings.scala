@@ -7,8 +7,8 @@ import java.time.LocalDateTime
 
 trait Screenings[F[_]] {
 
-  def listScreenings(start : LocalDateTime, finish : LocalDateTime) : List[Screening]
+  def listScreenings(start : LocalDateTime, finish : LocalDateTime) : F[List[Screening]]
 
-  def pickScreening(screeningId : Int) : List[AvailableSeat]
+  def pickScreening(screeningId : Int) : F[List[AvailableSeat]]
 
 }

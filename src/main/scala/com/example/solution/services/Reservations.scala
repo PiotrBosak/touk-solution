@@ -4,6 +4,6 @@ import com.example.solution.dto.reservation.{MadeReservation, ReservationData}
 
 trait Reservations[F[_]] {
 
-  def makeReservation(data : ReservationData) : Option[MadeReservation]
+  def makeReservation(data : ReservationData) : F[Option[MadeReservation]]
 
 }

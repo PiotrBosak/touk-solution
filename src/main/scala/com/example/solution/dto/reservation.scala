@@ -12,6 +12,8 @@ object reservation {
                             surname : String
                             )
 
+  case class ScreeningInterval(start : LocalDateTime, finish : LocalDateTime)
+
   case class MadeReservation(total : Double, expirationTime : LocalDateTime)
 
 }
