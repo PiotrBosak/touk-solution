@@ -4,6 +4,12 @@ val MunitVersion = "0.7.20"
 val LogbackVersion = "1.2.3"
 val MunitCatsEffectVersion = "0.13.0"
 
+val catsVersion = "2.5.0"
+
+val catsEffectVersion = "2.4.1"
+
+val cats = "org.typelevel" %% "cats-core" % catsVersion
+val catsEffect = "org.typelevel" %% "cats-effect" % catsEffectVersion
 lazy val root = (project in file("."))
   .settings(
     organization := "com.example",
@@ -19,7 +25,9 @@ lazy val root = (project in file("."))
       "org.scalameta"   %% "munit"               % MunitVersion           % Test,
       "org.typelevel"   %% "munit-cats-effect-2" % MunitCatsEffectVersion % Test,
       "ch.qos.logback"  %  "logback-classic"     % LogbackVersion,
-      "org.scalameta"   %% "svm-subs"            % "20.2.0"
+      "org.scalameta"   %% "svm-subs"            % "20.2.0",
+      cats,
+      catsEffect
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.13.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1"),
