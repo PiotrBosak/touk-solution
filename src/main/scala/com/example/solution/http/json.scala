@@ -10,6 +10,9 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
+import cats.syntax.all._
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 object json extends JsonCodecs {
   implicit def deriveEntityEncoder[F[_] : Applicative, A: Encoder]: EntityEncoder[F, A] = jsonEncoderOf[F, A]
@@ -38,8 +41,8 @@ private[http] trait JsonCodecs {
   implicit val ScreeningDecoder: Decoder[Screening] = deriveDecoder[Screening]
   implicit val ScreeningEncoder: Encoder[Screening] = deriveEncoder[Screening]
 
-  implicit val ScreeningIntervalDecoder : Decoder[ScreeningInterval] = deriveDecoder[ScreeningInterval]
-  implicit val ScreeningIntervalEncoder : Encoder[ScreeningInterval] = deriveEncoder[ScreeningInterval]
+//  implicit val ScreeningIntervalDecoder : Decoder[ScreeningInterval] = deriveDecoder[ScreeningInterval]
+//  implicit val ScreeningIntervalEncoder : Encoder[ScreeningInterval] = deriveEncoder[ScreeningInterval]
 
   implicit val AvailableSeatEncoder : Encoder[AvailableSeat] = deriveEncoder[AvailableSeat]
   implicit val RoomDataEncoder : Encoder[RoomData] = deriveEncoder[RoomData]
@@ -50,6 +53,15 @@ private[http] trait JsonCodecs {
   implicit val MadeReservationEncoder : Encoder[MadeReservation] = deriveEncoder[MadeReservation]
 
   implicit val ScreeningDateEncoder : Encoder[ScreeningData] = deriveEncoder[ScreeningData]
+
+
+  val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+  implicit val dateEncoder = Encoder.encodeString.contramap[LocalDateTime](_.format(formatter))
+  implicit val dateDecoder = Decoder.decodeString.emap[LocalDateTime](str => {
+    Either.catchNonFatal(LocalDateTime.parse(str, formatter)).leftMap(_.getMessage)
+  })
+  implicit val ScreenIntervalEncoder : Encoder[ScreeningInterval] = deriveEncoder[ScreeningInterval]
+  implicit val ScreenIntervalDecoder : Decoder[ScreeningInterval] = deriveDecoder[ScreeningInterval]
 
 }
 

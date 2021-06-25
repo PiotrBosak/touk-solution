@@ -4,6 +4,7 @@ import cats.effect._
 import cats.syntax.all._
 import com.example.solution.domain.room.{Room, RoomId}
 import com.example.solution.domain.screening.Screening
+import com.example.solution.dto.reservation.ScreeningInterval
 import com.example.solution.dto.screening.{AvailableSeat, RoomData, ScreeningData}
 import skunk._
 import skunk.codec.all._
@@ -13,7 +14,7 @@ import java.time.LocalDateTime
 
 trait Screenings[F[_]] {
 
-  def listScreenings(start: LocalDateTime, finish: LocalDateTime): F[List[ScreeningData]]
+  def listScreenings(interval : ScreeningInterval): F[List[ScreeningData]]
 
   def pickScreening(screeningId: Int): F[RoomData]
 
@@ -34,8 +35,13 @@ final class LiveScreenings[F[_] : BracketThrow : Sync] private(
 
   import ScreeningQueries._
 
-  override def listScreenings(start: LocalDateTime, finish: LocalDateTime): F[List[ScreeningData]] =
-    sessionPool.use(_.execute(selectAll))
+  override def listScreenings(interval : ScreeningInterval): F[List[ScreeningData]] =
+    sessionPool.use { session => {
+      session.prepare(selectAllInRange).use { ps =>
+        ps.stream((interval.start,interval.finish),chunkSize = 1024).compile.toList
+      }
+    }
+    }
 
 
   override def pickScreening(screeningId: Int): F[RoomData] = sessionPool.use { session =>
@@ -68,9 +74,9 @@ private object ScreeningQueries {
 
 
   val screeningDataCodec: Decoder[ScreeningData] =
-    (numeric ~ varchar ~ date ~ time).map {
-      case id ~ title ~ date ~ time =>
-        ScreeningData(id.toInt, title, date.atTime(time))
+    (int4 ~ varchar(50) ~ timestamp).map {
+      case id ~ title ~ dateTime =>
+        ScreeningData(id, title, dateTime)
     }
 
   case class RoomDataRecord(
@@ -82,23 +88,25 @@ private object ScreeningQueries {
                            )
 
   val roomDataDecoder: Decoder[RoomDataRecord] =
-    (numeric ~ numeric ~ numeric ~ numeric ~ numeric).map {
+    (int4 ~ int4 ~ int4 ~ int4 ~ int4).map {
       case roomId ~ roomRows ~ roomSeatsPerRow ~ takenRow ~ takenSeatInRow =>
-        RoomDataRecord(roomId.toInt,
-          roomRows.toInt,
-          roomSeatsPerRow.toInt,
-          takenRow.toInt,
-          takenSeatInRow.toInt)
+        RoomDataRecord(roomId,
+          roomRows,
+          roomSeatsPerRow,
+          takenRow,
+          takenSeatInRow)
 
     }
 
 
-  val selectAll: Query[Void, ScreeningData] =
+  val selectAllInRange: Query[LocalDateTime ~ LocalDateTime, ScreeningData] =
     sql"""
-         select s.id, m.title, s.date,s.time
+         select s.id, m.title, s.screening_time
          from screenings s
          inner join movies m
          on s.movie_id = m.id
+         where s.screening_time > ${timestamp}
+         and s.screening_time < ${timestamp}
        """.query(screeningDataCodec)
 
   val selectRoomInfo: Query[Int, RoomDataRecord] =
