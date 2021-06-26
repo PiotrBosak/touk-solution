@@ -21,7 +21,10 @@ final class ReservationRoutes[F[_] : Defer : JsonDecoder : Monad](
   private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
     case ar@POST -> Root / "make" =>
       ar.asJsonDecode[ReservationData].flatMap(rd =>
-        Ok(reservations.makeReservation(rd)))
+        reservations.makeReservation(rd).flatMap {
+          case Some(reservation) => Ok(reservation)
+          case None => BadRequest()
+        })
   }
 
 

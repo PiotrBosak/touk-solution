@@ -27,7 +27,7 @@ create table screenings
 
 create table reservations
 (
-    id           integer primary key,
+    id  serial primary key,
     client_name varchar (50) not null,
     client_surname varchar (50) not null,
     screening_id integer not null,
@@ -39,7 +39,7 @@ create table reservations
 
 create table taken_seats
 (
-    id             integer primary key,
+    id              serial primary key,
     reservation_id integer not null,
     row integer not null ,
     seat_in_row integer not null ,
