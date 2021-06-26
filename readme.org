@@ -1,0 +1,33 @@
+#+TITLE: Readme
+* Ticket booking app task solution
+** How to build
+1. run tables.sql script present in resources directory, it will create a database, create tables and fill them with sample data
+2. run 'sbt run' in the project root.
+** example request body data
+*** GET http://localhost:8080/screenings/
+#+BEGIN_SRC js
+ {
+    "start" : "1999-01-08 04:05:06",
+    "finish" : "2023-01-08 04:05:06"
+}
+#+END_SRC
+*** POST http://localhost:8080/reservations/make
+#+BEGIN_SRC js
+ {
+    "screeningId" : 1,
+    "pickedSeats" : [
+        {
+        "row" : 2,
+        "seatInRow" : 4,
+        "ticketType" : "adult"
+        },
+        {
+            "row" : 2,
+            "seatInRow" : 5,
+            "ticketType" : "child"
+        }
+    ],
+    "name" : "Jan",
+    "surname" : "Kowąlski"
+}
+#+END_SRC
