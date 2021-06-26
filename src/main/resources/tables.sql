@@ -49,20 +49,32 @@ create table taken_seats
     constraint screening_fkey foreign key (reservation_id)
         references reservations (id)
 );
-insert into movies(id, title) values (1,'Godfather');
-insert into movies(id, title) values (2,'Godfather 2');
+insert into movies(title) values ('Godfather');
+insert into movies(title) values ('Godfather 2');
+insert into movies(title) values ('Godfather 3');
 
-insert into rooms(id, rows, seats_per_row)  values (1,5,5);
-insert into rooms(id, rows, seats_per_row)  values (2,10,10);
+insert into rooms(rows, seats_per_row)  values (5,5);
+insert into rooms(rows, seats_per_row)  values (10,10);
+insert into rooms(rows, seats_per_row)  values (10,10);
 
 insert into screenings(id, movie_id, room_id, screening_time)
 VALUES(1,1,1,current_timestamp + (2 * interval '1 hour'));
 insert into screenings(id, movie_id, room_id, screening_time)
-VALUES(2,2,2,current_timestamp + (10 * interval '1 minute'));
+VALUES(2,1,1,current_timestamp + (3 * interval '1 hour'));
+insert into screenings(id, movie_id, room_id, screening_time)
+VALUES(3,2,1,current_timestamp + (10 * interval '1 minute'));
 
+
+insert into screenings(id, movie_id, room_id, screening_time)
+VALUES(4,3,2,current_timestamp + (2 * interval '1 hour'));
+insert into screenings(id, movie_id, room_id, screening_time)
+VALUES(5,3,2,current_timestamp + (3 * interval '1 hour'));
+insert into screenings(id, movie_id, room_id, screening_time)
+VALUES(6,2,2,current_timestamp + (10 * interval '1 minute'));
 
 insert into reservations
 (client_name, client_surname, screening_id, total_cost) values('Jan', 'Dzięrzecki', 1,50.0);
+
 insert into taken_seats(reservation_id, row, seat_in_row, ticket_type)
 values (1,3,3,'child');
 insert into taken_seats(reservation_id, row, seat_in_row, ticket_type)

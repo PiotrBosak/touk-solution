@@ -1,8 +1,9 @@
 #+TITLE: Readme
 * Ticket booking app task solution
 ** How to build
-1. run tables.sql script present in resources directory, it will create a database, create tables and fill them with sample data
-2. run 'sbt run' in the project root.
+ run init.sh script(it creates database, creates tables with sample data, and runs sbt run)
+** How to run endpoints
+execute runEndpoints.sh
 ** example request body data
 *** GET http://localhost:8080/screenings/
 #+BEGIN_SRC js
