@@ -53,9 +53,8 @@ final class LiveScreenings[F[_] : BracketThrow : Sync] private(
 
 
   private def convertToRoomData(list: List[Either[SimpleRoomData, FullRoomData]]): Option[RoomData] = {
-    if (list.isEmpty)
-      return None
-    if (list.exists(_.isRight))
+    if (list.isEmpty) None
+    else if (list.exists(_.isRight))
       Some(handleFullRoomData(list))
     else
       list.collectFirst {
