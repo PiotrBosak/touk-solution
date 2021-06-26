@@ -14,9 +14,9 @@ import java.time.LocalDateTime
 
 trait Screenings[F[_]] {
 
-  def listScreenings(interval : ScreeningInterval): F[List[ScreeningData]]
+  def listScreenings(interval: ScreeningInterval): F[List[ScreeningData]]
 
-  def pickScreening(screeningId: Int): F[RoomData]
+  def pickScreening(screeningId: Int): F[Option[RoomData]]
 
 }
 
@@ -35,39 +35,59 @@ final class LiveScreenings[F[_] : BracketThrow : Sync] private(
 
   import ScreeningQueries._
 
-  override def listScreenings(interval : ScreeningInterval): F[List[ScreeningData]] =
+  override def listScreenings(interval: ScreeningInterval): F[List[ScreeningData]] =
     sessionPool.use { session => {
       session.prepare(selectAllInRange).use { ps =>
-        ps.stream((interval.start,interval.finish),chunkSize = 1024).compile.toList
-      }
+        ps.stream((interval.start, interval.finish), chunkSize = 1024).compile.toList
+      }.map(listScreenings => listScreenings.sorted)
     }
     }
 
 
-  override def pickScreening(screeningId: Int): F[RoomData] = sessionPool.use { session =>
+  override def pickScreening(screeningId: Int): F[Option[RoomData]] = sessionPool.use { session =>
     session.prepare(selectRoomInfo).use { ps =>
       ps.stream(screeningId, 1024).compile.toList
         .map(convertToRoomData)
     }
   }
 
-  private def convertToRoomData(list: List[RoomDataRecord]): RoomData = {
-    val roomId = list.head.roomId
-    val roomRows = list.head.roomRows
-    val roomSeatsPerRow = list.head.roomSeatsPerRow
-    val takenSeats = list.map(rdr => (rdr.takenRow, rdr.takenSeatRow))
-    val availableSeats = (for {
-      row <- (1 to roomRows).toList
-      seatInRow <- (1 to roomSeatsPerRow).toList
-    } yield (row, seatInRow))
-      .filter(t => !takenSeats.contains(t._1, t._2))
-      .map(t => AvailableSeat(t._1, t._2))
 
-    RoomData(
-      Room(RoomId(roomId), roomRows, roomSeatsPerRow),
-      availableSeats
-    )
+  private def convertToRoomData(list: List[Either[SimpleRoomData, FullRoomData]]): Option[RoomData] = {
+    if (list.isEmpty)
+      return None
+    if (list.exists(_.isRight))
+      Some(handleFullRoomData(list))
+    else
+      list.collectFirst {
+        case Left(value) => RoomData(
+          Room(RoomId(value.roomId), value.roomRows, value.roomEatsPerRow),
+          for {
+            row <- (1 to value.roomRows).toList
+            seatInRow <- (1 to value.roomEatsPerRow).toList
+          } yield AvailableSeat(row, seatInRow)
+        )
+      }
+
+
   }
+
+  private def handleFullRoomData(list: List[Either[SimpleRoomData, FullRoomData]]): RoomData = {
+    val takenSeats = list.collect {
+      case Right(fullRoomData) => (fullRoomData.takenRow, fullRoomData.takenSeatRow)
+    }
+    list.collectFirst {
+      case Right(value) => RoomData(
+        Room(RoomId(value.roomId), value.roomRows, value.roomSeatsPerRow),
+        (for {
+          row <- (1 to value.roomRows).toList
+          seatInRow <- (1 to value.roomSeatsPerRow).toList
+        } yield AvailableSeat(row, seatInRow))
+          .filter(as => !takenSeats.contains(as.row, as.seatInRow))
+      )
+    }.get
+    //ugly get
+  }
+
 }
 
 private object ScreeningQueries {
@@ -79,22 +99,28 @@ private object ScreeningQueries {
         ScreeningData(id, title, dateTime)
     }
 
-  case class RoomDataRecord(
-                             roomId: Int,
-                             roomRows: Int,
-                             roomSeatsPerRow: Int,
-                             takenRow: Int,
-                             takenSeatRow: Int
-                           )
 
-  val roomDataDecoder: Decoder[RoomDataRecord] =
-    (int4 ~ int4 ~ int4 ~ int4 ~ int4).map {
-      case roomId ~ roomRows ~ roomSeatsPerRow ~ takenRow ~ takenSeatInRow =>
-        RoomDataRecord(roomId,
-          roomRows,
-          roomSeatsPerRow,
-          takenRow,
-          takenSeatInRow)
+  case class SimpleRoomData(roomId: Int, roomRows: Int, roomEatsPerRow: Int)
+
+  case class FullRoomData(
+                           roomId: Int,
+                           roomRows: Int,
+                           roomSeatsPerRow: Int,
+                           takenRow: Int,
+                           takenSeatRow: Int
+                         )
+
+  val roomDataDecoder: Decoder[Either[SimpleRoomData, FullRoomData]] =
+    (int4 ~ int4 ~ int4 ~ int4.opt ~ int4.opt).map {
+
+      case roomId ~ roomRows ~ roomSeatsPerRow ~ takenRowOpt ~ takenSeatInRowOpt =>
+        takenRowOpt.map2(takenSeatInRowOpt)((takenRow, takenSeatInRow) =>
+          FullRoomData(roomId,
+            roomRows,
+            roomSeatsPerRow,
+            takenRow,
+            takenSeatInRow))
+          .toRight(SimpleRoomData(roomId, roomRows, roomSeatsPerRow))
 
     }
 
@@ -109,16 +135,16 @@ private object ScreeningQueries {
          and s.screening_time < ${timestamp}
        """.query(screeningDataCodec)
 
-  val selectRoomInfo: Query[Int, RoomDataRecord] =
+  val selectRoomInfo: Query[Int, Either[SimpleRoomData, FullRoomData]] =
     sql"""
        select r.id, r.rows, r.seats_per_row,
             ts.row, ts.seat_in_row from rooms r
             inner join screenings s
             on s.room_id = r.id
-            inner join reservations res
-            on res.screening_id = s.id
-            inner join taken_seats ts
-            on ts.reservation_id = res.id
+            left join reservations res
+            on s.id = res.screening_id
+            left join taken_seats ts
+            on res.id = ts.reservation_id
             where s.id = $int4
        """.query(roomDataDecoder)
 }
