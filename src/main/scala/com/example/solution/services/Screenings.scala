@@ -130,24 +130,24 @@ private object ScreeningQueries {
 
   val selectAllInRange: Query[LocalDateTime ~ LocalDateTime, ScreeningData] =
     sql"""
-         select s.id, m.title, s.screening_time
-         from screenings s
-         inner join movies m
-         on s.movie_id = m.id
-         where s.screening_time > ${timestamp}
-         and s.screening_time < ${timestamp}
+         SELECT s.id, m.title, s.screening_time
+         FROM screenings s
+         INNER JOIN movies m
+         ON s.movie_id = m.id
+         WHERE s.screening_time > ${timestamp}
+         AND s.screening_time < ${timestamp}
        """.query(screeningDataCodec)
 
   val selectRoomInfo: Query[Int, Either[SimpleRoomData, FullRoomData]] =
     sql"""
-       select r.id, r.rows, r.seats_per_row,
-            ts.row, ts.seat_in_row,s.screening_time from rooms r
-            inner join screenings s
-            on s.room_id = r.id
-            left join reservations res
-            on s.id = res.screening_id
-            left join taken_seats ts
-            on res.id = ts.reservation_id
-            where s.id = $int4
+       SELECT r.id, r.rows, r.seats_per_row,
+            ts.row, ts.seat_in_row,s.screening_time FROM rooms r
+            INNER JOIN screenings s
+            ON s.room_id = r.id
+            LEFT JOIN reservations res
+            ON s.id = res.screening_id
+            LEFT JOIN taken_seats ts
+            ON res.id = ts.reservation_id
+            WHERE s.id = $int4
        """.query(roomDataDecoder)
 }

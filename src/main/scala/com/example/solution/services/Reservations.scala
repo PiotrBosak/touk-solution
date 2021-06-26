@@ -109,13 +109,13 @@ private object ReservationQueries {
 
   val selectMaxId: Query[Void, Int] =
     sql"""
-         select max(id) from reservations
+         SELECT MAX(id) FROM reservations
        """.query(int4)
 
   val createReservation: Command[User ~ Int ~ Double] =
     sql"""
          INSERT INTO reservations(client_name,client_surname,screening_id,total_cost)
-         values($varchar, $varchar, $int4, $numeric)
+         VALUES($varchar, $varchar, $int4, $numeric)
        """.command.contramap {
       case user ~ screeningId ~ cost =>
         user.name.value ~ user.surname.value ~ screeningId ~ cost
@@ -123,8 +123,8 @@ private object ReservationQueries {
 
   val createTakenSeat: Command[Int ~ PickedSeat ~ Ticket] =
     sql"""
-         insert into taken_seats(reservation_id, row, seat_in_row, ticket_type)
-         values($int4, $int4, $int4, $varchar)
+         INSERT INTO taken_seats(reservation_id, row, seat_in_row, ticket_type)
+         VALUES($int4, $int4, $int4, $varchar)
        """.command.contramap {
       case reservationId ~ pickedSeat ~ ticket =>
         reservationId ~ pickedSeat.row ~ pickedSeat.seatInRow ~ ticket.toString
