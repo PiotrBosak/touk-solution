@@ -64,7 +64,8 @@ final class LiveScreenings[F[_] : BracketThrow : Sync] private(
           for {
             row <- (1 to value.roomRows).toList
             seatInRow <- (1 to value.roomEatsPerRow).toList
-          } yield AvailableSeat(row, seatInRow)
+          } yield AvailableSeat(row, seatInRow),
+          value.screeningTime
         )
       }
 
@@ -82,7 +83,8 @@ final class LiveScreenings[F[_] : BracketThrow : Sync] private(
           row <- (1 to value.roomRows).toList
           seatInRow <- (1 to value.roomSeatsPerRow).toList
         } yield AvailableSeat(row, seatInRow))
-          .filter(as => !takenSeats.contains(as.row, as.seatInRow))
+          .filter(as => !takenSeats.contains(as.row, as.seatInRow)),
+        value.screeningTime
       )
     }.get
     //ugly get
@@ -100,27 +102,29 @@ private object ScreeningQueries {
     }
 
 
-  case class SimpleRoomData(roomId: Int, roomRows: Int, roomEatsPerRow: Int)
+  case class SimpleRoomData(roomId: Int, roomRows: Int, roomEatsPerRow: Int, screeningTime : LocalDateTime)
 
   case class FullRoomData(
                            roomId: Int,
                            roomRows: Int,
                            roomSeatsPerRow: Int,
                            takenRow: Int,
-                           takenSeatRow: Int
+                           takenSeatRow: Int,
+                           screeningTime : LocalDateTime
                          )
 
   val roomDataDecoder: Decoder[Either[SimpleRoomData, FullRoomData]] =
-    (int4 ~ int4 ~ int4 ~ int4.opt ~ int4.opt).map {
+    (int4 ~ int4 ~ int4 ~ int4.opt ~ int4.opt ~ timestamp).map {
 
-      case roomId ~ roomRows ~ roomSeatsPerRow ~ takenRowOpt ~ takenSeatInRowOpt =>
+      case roomId ~ roomRows ~ roomSeatsPerRow ~ takenRowOpt ~ takenSeatInRowOpt ~ screeningTime =>
         takenRowOpt.map2(takenSeatInRowOpt)((takenRow, takenSeatInRow) =>
           FullRoomData(roomId,
             roomRows,
             roomSeatsPerRow,
             takenRow,
-            takenSeatInRow))
-          .toRight(SimpleRoomData(roomId, roomRows, roomSeatsPerRow))
+            takenSeatInRow,
+            screeningTime))
+          .toRight(SimpleRoomData(roomId, roomRows, roomSeatsPerRow,screeningTime))
 
     }
 
@@ -138,7 +142,7 @@ private object ScreeningQueries {
   val selectRoomInfo: Query[Int, Either[SimpleRoomData, FullRoomData]] =
     sql"""
        select r.id, r.rows, r.seats_per_row,
-            ts.row, ts.seat_in_row from rooms r
+            ts.row, ts.seat_in_row,s.screening_time from rooms r
             inner join screenings s
             on s.room_id = r.id
             left join reservations res

@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 object screening {
   case class AvailableSeat(row: Int, seatInRow: Int)
 
-  case class RoomData(room : Room, availableSeats : List[AvailableSeat])
+  case class RoomData(room : Room, availableSeats : List[AvailableSeat], screeningTime : LocalDateTime)
 
   case class ScreeningData(screeningId : Int, movieTitle : String, time : LocalDateTime)
 
